@@ -22,6 +22,7 @@ const client = new MongoClient(uri, {
 const run = async () => {
   try {
     const Cart = client.db("ornatoMart").collection("cart");
+    const Products = client.db("ornatoMart").collection("products");
 
     app.post("/cart", async (req, res) => {
       const product = req.body;
@@ -54,6 +55,19 @@ const run = async () => {
       const result = await Cart.deleteOne(query);
       res.send(result);
       console.log(result);
+    });
+
+    app.get("/products", async (req, res) => {
+      const query = {};
+      const page = parseInt(req.query.page);
+      const size = parseInt(req.query.size);
+      const cursor = Products.find(query);
+      const products = await cursor
+        .skip(page * size)
+        .limit(size)
+        .toArray();
+      const count = await Products.estimatedDocumentCount();
+      res.send({ count, products });
     });
   } finally {
   }
