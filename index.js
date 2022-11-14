@@ -76,6 +76,7 @@ const run = async () => {
       const query = { _id: ObjectId(id) };
       const result = await Cart.findOne(query);
       res.send(result);
+      console.log(result);
     });
 
     app.delete("/cart/:id", async (req, res) => {
@@ -87,7 +88,15 @@ const run = async () => {
     });
 
     app.get("/products", async (req, res) => {
-      const query = {};
+      const searchText = req.query.search;
+      let query = {};
+      if (searchText.length) {
+        query = {
+          $text: {
+            $search: searchText,
+          },
+        };
+      }
       const page = parseInt(req.query.page);
       const size = parseInt(req.query.size);
       const cursor = Products.find(query);
