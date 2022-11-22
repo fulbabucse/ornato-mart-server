@@ -39,6 +39,74 @@ const run = async () => {
   try {
     const Cart = client.db("ornatoMart").collection("cart");
     const Products = client.db("ornatoMart").collection("products");
+    const Categories = client.db("ornatoMart").collection("categories");
+    const SubCategories = client.db("ornatoMart").collection("sub_categories");
+
+    app.post("/categories", async (req, res) => {
+      const category = req.body;
+      const result = await Categories.insertOne(category);
+      res.send(result);
+    });
+
+    app.post("/sub-categories", async (req, res) => {
+      const subCategory = req.body;
+      const result = await SubCategories.insertOne(subCategory);
+      res.send(result);
+    });
+
+    app.get("/sub-category/men", async (req, res) => {
+      const query = { category_name: "Men's Fashion" };
+      const subCategory = await SubCategories.find(query).toArray();
+      res.send(subCategory);
+    });
+
+    app.get("/sub-category/women", async (req, res) => {
+      const query = { category_name: "Women's Fashion" };
+      const subCategory = await SubCategories.find(query).toArray();
+      res.send(subCategory);
+    });
+
+    app.get("/sub-category/electronics-devices", async (req, res) => {
+      const query = { category_name: "Electronics Devices" };
+      const subCategory = await SubCategories.find(query).toArray();
+      res.send(subCategory);
+    });
+
+    app.get("/sub-category/babies-toys", async (req, res) => {
+      const query = { category_name: "Babies & Toys" };
+      const subCategory = await SubCategories.find(query).toArray();
+      res.send(subCategory);
+    });
+
+    app.get("/sub-category/health-beauty", async (req, res) => {
+      const query = { category_name: "Health and Beauty" };
+      const subCategory = await SubCategories.find(query).toArray();
+      res.send(subCategory);
+    });
+
+    app.get("/sub-category/automotive-motorbike", async (req, res) => {
+      const query = { category_name: "Automotive Motorbike" };
+      const subCategory = await SubCategories.find(query).toArray();
+      res.send(subCategory);
+    });
+
+    app.get("/sub-category/electronics-accessories", async (req, res) => {
+      const query = { category_name: "Electronics Accessories" };
+      const subCategory = await SubCategories.find(query).toArray();
+      res.send(subCategory);
+    });
+
+    app.get("/sub-category/tv-appliance", async (req, res) => {
+      const query = { category_name: "Tv & Home Appliance" };
+      const subCategory = await SubCategories.find(query).toArray();
+      res.send(subCategory);
+    });
+
+    app.get("/categories", async (req, res) => {
+      const query = {};
+      const result = await Categories.find(query).toArray();
+      res.send(result);
+    });
 
     app.post("/jwt", (req, res) => {
       const user = req.body;
