@@ -41,6 +41,7 @@ const run = async () => {
     const Products = client.db("ornatoMart").collection("products");
     const Categories = client.db("ornatoMart").collection("categories");
     const SubCategories = client.db("ornatoMart").collection("sub_categories");
+    const Users = client.db("ornatoMart").collection("users");
 
     app.post("/categories", async (req, res) => {
       const category = req.body;
@@ -108,12 +109,58 @@ const run = async () => {
       res.send(result);
     });
 
-    app.post("/jwt", (req, res) => {
+    app.post("/users", async (req, res) => {
       const user = req.body;
-      const token = jwt.sign(user, process.env.JWT_ACCESS_TOKEN, {
-        expiresIn: "2d",
-      });
-      res.send({ token });
+      const result = await Users.insertOne(user);
+      res.send(result);
+    });
+
+    app.get("/users", verifyJWT, async (req, res) => {
+      const filter = {};
+      const users = await Users.find(filter).toArray();
+      res.send(users);
+    });
+
+    app.get("/users/admin/:email", async (req, res) => {
+      const email = req.params.email;
+      const query = { email };
+      const user = await Users.findOne(query);
+      res.send({ isAdmin: user?.role === "admin" });
+    });
+
+    app.put("/users/admin/:id", verifyJWT, async (req, res) => {
+      const decodedEmail = req.decoded.email;
+      const query = { email: decodedEmail };
+      const user = await Users.findOne(query);
+
+      if (user.role !== "admin") {
+        return res.status(401).send({ message: "Unauthorized Access" });
+      }
+
+      const id = req.params.id;
+      const filter = { _id: ObjectId(id) };
+      const options = { upsert: true };
+      const updatedInfo = {
+        $set: {
+          role: "admin",
+        },
+      };
+      const updated = await Users.updateOne(filter, updatedInfo, options);
+      res.send(updated);
+    });
+
+    app.get("/jwt", async (req, res) => {
+      const email = req.query.email;
+      const query = { email };
+      const user = await Users.findOne(query);
+
+      if (user) {
+        const token = jwt.sign({ email }, process.env.JWT_ACCESS_TOKEN, {
+          expiresIn: "1d",
+        });
+        return res.send({ ornatoToken: token });
+      }
+      res.status(403).send({ message: "forbidden access" });
     });
 
     app.post("/cart", async (req, res) => {
@@ -144,7 +191,6 @@ const run = async () => {
       const query = { _id: ObjectId(id) };
       const result = await Cart.findOne(query);
       res.send(result);
-      console.log(result);
     });
 
     app.delete("/cart/:id", async (req, res) => {
@@ -152,7 +198,6 @@ const run = async () => {
       const query = { _id: ObjectId(id) };
       const result = await Cart.deleteOne(query);
       res.send(result);
-      console.log(result);
     });
 
     app.get("/products", async (req, res) => {
