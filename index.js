@@ -55,6 +55,18 @@ const run = async () => {
       res.send(result);
     });
 
+    app.get("/categories", async (req, res) => {
+      const query = {};
+      const categories = await Categories.find(query).toArray();
+      res.send(categories);
+    });
+
+    app.get("/sub-categories", async (req, res) => {
+      const query = {};
+      const categories = await SubCategories.find(query).toArray();
+      res.send(categories);
+    });
+
     app.get("/sub-category/men", async (req, res) => {
       const query = { category_name: "Men's Fashion" };
       const subCategory = await SubCategories.find(query).toArray();
@@ -101,12 +113,6 @@ const run = async () => {
       const query = { category_name: "Tv & Home Appliance" };
       const subCategory = await SubCategories.find(query).toArray();
       res.send(subCategory);
-    });
-
-    app.get("/categories", async (req, res) => {
-      const query = {};
-      const result = await Categories.find(query).toArray();
-      res.send(result);
     });
 
     app.post("/users", async (req, res) => {
