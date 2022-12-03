@@ -44,6 +44,29 @@ const run = async () => {
     const Users = client.db("ornatoMart").collection("users");
     const OrnatoProducts = client.db("ornatoMart").collection("ornatoProducts");
     const Sellers = client.db("ornatoMart").collection("sellers");
+    const Review = client.db("ornatoMart").collection("review");
+
+    app.get("/reviews", async (req, res) => {
+      const productId = req.query.productId;
+      const query = {
+        productId: productId,
+      };
+      const reviews = await Review.find(query).sort({ createAt: -1 }).toArray();
+      res.send(reviews);
+    });
+
+    app.post("/reviews", async (req, res) => {
+      const review = req.body;
+      const result = await Review.insertOne(review);
+      res.send(result);
+    });
+
+    app.get("/shop_products", async (req, res) => {
+      const shopName = req.query.shopName;
+      const query = { seller_name: shopName };
+      const result = await OrnatoProducts.find(query).toArray();
+      res.send(result);
+    });
 
     app.get("/sub_category_products/:subCategoryName", async (req, res) => {
       const subCategoryName = req.params.subCategoryName;
@@ -63,6 +86,15 @@ const run = async () => {
       };
       const products = await OrnatoProducts.find(query).toArray();
       res.send(products);
+    });
+
+    app.get("/sellers/:name", async (req, res) => {
+      const sellerName = req.params.name;
+      const query = {
+        seller_name: sellerName,
+      };
+      const result = await Sellers.findOne(query);
+      res.send(result);
     });
 
     app.get("/sellers", async (req, res) => {
