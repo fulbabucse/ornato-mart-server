@@ -38,10 +38,57 @@ const client = new MongoClient(uri, {
 const run = async () => {
   try {
     const Cart = client.db("ornatoMart").collection("cart");
-    const Products = client.db("ornatoMart").collection("products");
+    // const Products = client.db("ornatoMart").collection("products");
     const Categories = client.db("ornatoMart").collection("categories");
     const SubCategories = client.db("ornatoMart").collection("sub_categories");
     const Users = client.db("ornatoMart").collection("users");
+    const OrnatoProducts = client.db("ornatoMart").collection("ornatoProducts");
+    const Sellers = client.db("ornatoMart").collection("sellers");
+
+    app.get("/sub_category_products/:subCategoryName", async (req, res) => {
+      const subCategoryName = req.params.subCategoryName;
+      const query = {
+        subCategory_name: subCategoryName,
+      };
+      const products = await OrnatoProducts.find(query).toArray();
+      res.send(products);
+    });
+
+    app.get("/sub_category_products", async (req, res) => {
+      const category = req.query.category;
+      const subCategory = req.query.subCategory;
+      const query = {
+        category_name: category,
+        subCategory_name: subCategory,
+      };
+      const products = await OrnatoProducts.find(query).toArray();
+      res.send(products);
+    });
+
+    app.get("/sellers", async (req, res) => {
+      const filter = {};
+      const sellers = await Sellers.find(filter).toArray();
+      res.send(sellers);
+    });
+
+    app.get("/product/:id", async (req, res) => {
+      const id = req.params.id;
+      const filter = { _id: ObjectId(id) };
+      const product = await OrnatoProducts.findOne(filter);
+      res.send(product);
+    });
+
+    app.get("/products", async (req, res) => {
+      const filter = {};
+      const products = await OrnatoProducts.find(filter).toArray();
+      res.send(products);
+    });
+
+    app.post("/products", async (req, res) => {
+      const product = req.body;
+      const result = await OrnatoProducts.insertOne(product);
+      res.send(result);
+    });
 
     app.post("/categories", async (req, res) => {
       const category = req.body;
@@ -59,6 +106,13 @@ const run = async () => {
       const query = {};
       const categories = await Categories.find(query).toArray();
       res.send(categories);
+    });
+
+    app.get("/sub_category/:categoryId", async (req, res) => {
+      const categoryId = req.params.categoryId;
+      const query = { category_id: categoryId };
+      const sub_category = await SubCategories.findOne(query);
+      res.send(sub_category);
     });
 
     app.get("/sub-categories", async (req, res) => {
@@ -204,27 +258,6 @@ const run = async () => {
       const query = { _id: ObjectId(id) };
       const result = await Cart.deleteOne(query);
       res.send(result);
-    });
-
-    app.get("/products", async (req, res) => {
-      const searchText = req.query.search;
-      let query = {};
-      if (searchText.length) {
-        query = {
-          $text: {
-            $search: searchText,
-          },
-        };
-      }
-      const page = parseInt(req.query.page);
-      const size = parseInt(req.query.size);
-      const cursor = Products.find(query);
-      const products = await cursor
-        .skip(page * size)
-        .limit(size)
-        .toArray();
-      const count = await Products.estimatedDocumentCount();
-      res.send({ count, products });
     });
   } finally {
   }
