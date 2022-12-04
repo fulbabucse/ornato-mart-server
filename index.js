@@ -45,6 +45,13 @@ const run = async () => {
     const OrnatoProducts = client.db("ornatoMart").collection("ornatoProducts");
     const Sellers = client.db("ornatoMart").collection("sellers");
     const Review = client.db("ornatoMart").collection("review");
+    const FlashSale = client.db("ornatoMart").collection("flashSale");
+
+    app.get("/flashSale", async (req, res) => {
+      const query = {};
+      const products = await FlashSale.find(query).toArray();
+      res.send(products);
+    });
 
     app.get("/reviews", async (req, res) => {
       const productId = req.query.productId;
@@ -147,7 +154,7 @@ const run = async () => {
         product_discount: product.product_discount,
         product_main_materials: product.product_main_materials,
         product_name: product.product_name,
-        product_rating: product.product_rating,
+        product_rating: parseFloat(product.product_rating),
         product_image: product.product_image,
         product_size: product.product_size,
         product_stock_size: product.product_stock_size,
