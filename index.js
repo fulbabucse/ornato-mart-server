@@ -68,6 +68,22 @@ const run = async () => {
       res.send(result);
     });
 
+    app.get("/category/:categoryName", async (req, res) => {
+      const categoryName = req.params.categoryName;
+      const query = { category_name: categoryName };
+      const categoryProducts = await OrnatoProducts.find(query).toArray();
+      res.send(categoryProducts);
+    });
+
+    app.get("/category-products", async (req, res) => {
+      const categoryName = req.query.categoryName;
+      const query = {
+        category_name: categoryName,
+      };
+      const products = await OrnatoProducts.find(query).toArray();
+      res.send(products);
+    });
+
     app.get("/sub_category_products/:subCategoryName", async (req, res) => {
       const subCategoryName = req.params.subCategoryName;
       const query = {
@@ -112,13 +128,36 @@ const run = async () => {
 
     app.get("/products", async (req, res) => {
       const filter = {};
-      const products = await OrnatoProducts.find(filter).toArray();
+      const order = req.query.order === "high" ? 1 : -1;
+      const products = await OrnatoProducts.find(filter)
+        .sort({ price: order })
+        .toArray();
       res.send(products);
     });
 
     app.post("/products", async (req, res) => {
       const product = req.body;
-      const result = await OrnatoProducts.insertOne(product);
+
+      const insertProduct = {
+        brand_name: product.brand_name,
+        category_name: product.category_name,
+        location: product.location,
+        price: parseInt(product.price),
+        product_color: product.product_color,
+        product_discount: product.product_discount,
+        product_main_materials: product.product_main_materials,
+        product_name: product.product_name,
+        product_rating: product.product_rating,
+        product_image: product.product_image,
+        product_size: product.product_size,
+        product_stock_size: product.product_stock_size,
+        product_warranty: product.product_warranty,
+        service_type: product.service_type,
+        subCategory_name: product.subCategory_name,
+        seller_name: product.seller_name,
+      };
+
+      const result = await OrnatoProducts.insertOne(insertProduct);
       res.send(result);
     });
 
