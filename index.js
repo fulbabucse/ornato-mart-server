@@ -46,6 +46,30 @@ const run = async () => {
     const Sellers = client.db("ornatoMart").collection("sellers");
     const Review = client.db("ornatoMart").collection("review");
     const FlashSale = client.db("ornatoMart").collection("flashSale");
+    const Province = client.db("ornatoMart").collection("province");
+    const Cities = client.db("ornatoMart").collection("cities");
+
+    app.get("/area", async (req, res) => {
+      const area = req.query.area;
+      const query = { city_name: area };
+      const result = await Cities.find(query).toArray();
+      res.send(result);
+    });
+
+    app.get("/cities", async (req, res) => {
+      const province = req.query.province;
+      const query = {
+        province_name: province,
+      };
+      const cities = await Cities.find(query).toArray();
+      res.send(cities);
+    });
+
+    app.get("/provinces", async (req, res) => {
+      const query = {};
+      const provinces = await Province.find(query).toArray();
+      res.send(provinces);
+    });
 
     app.get("/flashSale", async (req, res) => {
       const query = {};
@@ -307,20 +331,9 @@ const run = async () => {
       res.send(result);
     });
 
-    app.get("/cart", verifyJWT, async (req, res) => {
-      const decoded = req.decoded;
-      if (decoded.email !== req.query.email) {
-        res.status(403).send({ message: "Forbidden access" });
-      }
-      let query = {};
-      if (req.query.email) {
-        query = {
-          email: req.query.email,
-        };
-      }
-
-      const cursor = Cart.find(query);
-      const result = await cursor.toArray();
+    app.get("/cart", async (req, res) => {
+      let query = { email: req.query.email };
+      const result = await Cart.find(query).toArray();
       res.send(result);
     });
 
