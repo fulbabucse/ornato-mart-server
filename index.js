@@ -271,6 +271,31 @@ const run = async () => {
       res.send(subCategory);
     });
 
+    app.get("/users/:email", async (req, res) => {
+      const email = req.params.email;
+      const query = { email: email };
+      const user = await Users.findOne(query);
+      res.send(user);
+    });
+
+    app.put("/users", async (req, res) => {
+      const email = req.query.email;
+      const data = req.body;
+      const query = { email: email };
+      const options = { upsert: true };
+      const updateInfo = {
+        $set: {
+          province: data.province,
+          city: data.city,
+          address: data.address,
+          phone: data.phone,
+          area: data.area,
+        },
+      };
+      const updated = await Users.updateOne(query, updateInfo, options);
+      res.send(updated);
+    });
+
     app.post("/users", async (req, res) => {
       const user = req.body;
       const result = await Users.insertOne(user);
