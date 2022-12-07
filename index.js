@@ -87,7 +87,19 @@ const run = async () => {
     });
 
     app.post("/reviews", async (req, res) => {
-      const review = req.body;
+      const reviewBody = req.body;
+      const review = {
+        reviewerName: reviewBody.reviewerName,
+        email: reviewBody.email,
+        reviewedAt: reviewBody.reviewedAt,
+        createAt: reviewBody.createAt,
+        productId: reviewBody.productId,
+        product_name: reviewBody.product_name,
+        subCategory_name: reviewBody.subCategory_name,
+        reviewImage: reviewBody.reviewImage,
+        rating: parseFloat(reviewBody.rating),
+        review_message: reviewBody.review_message,
+      };
       const result = await Review.insertOne(review);
       res.send(result);
     });
