@@ -79,10 +79,13 @@ const run = async () => {
 
     app.get("/reviews", async (req, res) => {
       const productId = req.query.productId;
+      const ratingSort = req.query.rating === "highRating" ? 1 : -1;
       const query = {
         productId: productId,
       };
-      const reviews = await Review.find(query).sort({ createAt: -1 }).toArray();
+      const reviews = await Review.find(query)
+        .sort({ rating: ratingSort, createAt: -1 })
+        .toArray();
       res.send(reviews);
     });
 
