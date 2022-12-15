@@ -1,10 +1,14 @@
 const express = require("express");
 const { MongoClient, ServerApiVersion, ObjectId } = require("mongodb");
+const SSLCommerzPayment = require("sslcommerz-lts");
 const cors = require("cors");
+require("dotenv").config();
 const app = express();
 const port = process.env.PORT || 5000;
 const jwt = require("jsonwebtoken");
-require("dotenv").config();
+const store_id = process.env.STORED_ID;
+const store_passwd = process.env.STORED_PASSWORD;
+const is_live = false;
 
 app.use(cors());
 app.use(express.json());
@@ -48,6 +52,74 @@ const run = async () => {
     const FlashSale = client.db("ornatoMart").collection("flashSale");
     const Province = client.db("ornatoMart").collection("province");
     const Cities = client.db("ornatoMart").collection("cities");
+    const Orders = client.db("ornatoMart").collection("orders");
+
+    app.post("/ordered", async (req, res) => {
+      const order = req.body;
+
+      const transactionId = new ObjectId().toString();
+      const orderedTime = new Date().toLocaleString();
+
+      const data = {
+        total_amount: order.price,
+        currency: "BDT",
+        tran_id: transactionId, // use unique tran_id for each api call
+        success_url: `http://localhost:5000/payment/success`,
+        fail_url: "http://localhost:5000/payment/fail",
+        cancel_url: "http://localhost:5000/payment/cancel",
+        ipn_url: "http://localhost:3030/ipn",
+        shipping_method: "Courier",
+        product_name: "Various Products",
+        product_category: "Various Category",
+        product_profile: "general",
+        cus_name: order.customer_name,
+        cus_email: order.email,
+        cus_add1: order.address,
+        cus_add2: order.area,
+        cus_city: order.city,
+        cus_state: order.province,
+        cus_postcode: "5431",
+        cus_country: "Bangladesh",
+        cus_phone: order.phone,
+        cus_fax: order.phone,
+        ship_name: order.customer_name,
+        ship_add1: order.address,
+        ship_add2: order.area,
+        ship_city: order.city,
+        ship_state: order.province,
+        ship_postcode: 5430,
+        ship_country: "Bangladesh",
+      };
+      const sslcz = new SSLCommerzPayment(store_id, store_passwd, is_live);
+      sslcz.init(data).then((apiResponse) => {
+        let GatewayPageURL = apiResponse.GatewayPageURL;
+        Orders.insertOne({
+          ...order,
+          transactionId,
+          orderedTime,
+          paymentStatus: false,
+        });
+        res.send({ redirectURL: GatewayPageURL });
+      });
+    });
+
+    app.post("/payment/success", async (req, res) => {
+      const { transactionId } = req.query;
+      console.log(transactionId);
+      console.log(req.query.transactionId);
+      const result = await Orders.updateOne(
+        { transactionId },
+        { $set: { paymentStatus: true } }
+      );
+
+      if (result.modifiedCount > 0) {
+        res.redirect(
+          `http://localhost:3000/payment/success?transactionId=${transactionId}`
+        );
+      }
+
+      console.log(result);
+    });
 
     app.get("/area", async (req, res) => {
       const area = req.query.area;
@@ -173,7 +245,15 @@ const run = async () => {
     });
 
     app.get("/products", async (req, res) => {
-      const filter = {};
+      const searchValue = req.query.search;
+      let filter = {};
+      if (searchValue) {
+        filter = {
+          $text: {
+            $search: searchValue,
+          },
+        };
+      }
       const order = req.query.order === "high" ? 1 : -1;
       const products = await OrnatoProducts.find(filter)
         .sort({ price: order })
